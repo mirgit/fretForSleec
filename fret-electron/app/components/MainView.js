@@ -47,6 +47,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 
 import css from './MainView.css';
 import CreateRequirementDialog from './CreateRequirementDialog';
+import CreateSleecReqDialog from './CreateSleecReqDialog';
 import CreateProjectDialog from './CreateProjectDialog';
 import DeleteProjectDialog from './DeleteProjectDialog';
 import AppMainContent from './AppMainContent';
@@ -207,6 +208,8 @@ class MainView extends React.Component {
     warningDialogOpen: false,
     editedProject: null,
     copiedProject: null,
+    openMenu: null,
+    createSleecDialogOpen: false,
     };
 
   constructor(props) {
@@ -330,10 +333,13 @@ class MainView extends React.Component {
 
 
   }
-
-  handleProjectMenuClick = event => {
-    this.setState({ anchorEl: event.currentTarget });
+// Mahrokh: I'm changing some FRET code here.
+  handleMenuClick = (event,menu) => {
+    this.setState({ anchorEl: event.currentTarget, openMenu: menu});
   };
+  //   handleProjectMenuClick = event => {
+  //   this.setState({ anchorEl: event.currentTarget});
+  // };
 
   handleSetProject = (name) => {
     const self = this
@@ -373,11 +379,27 @@ class MainView extends React.Component {
   }
 
   handleClose = () => {
-    this.setState({ anchorEl: null });
+    this.setState({ anchorEl: null, openMenu : null });
   };
 
+  handleCreateSleecClose = (newRequirementCreated, newReqId) => {
+    this.setState({ 
+      createSleecDialogOpen: false,
+      snackbarOpen: newRequirementCreated,
+      lastCreatedRequirementId: newReqId
+     });
+  };
+
+handleCreateSleecOpen = () => {
+  // this.handleClose();
+    this.setState({ createSleecDialogOpen: true,  anchorEl: null});
+};
+handleAnotherAction = () => {
+    this.handleClose();
+    this.setState({anchorEl: null});
+}
   handleCreateDialogOpen = () => {
-    this.setState({ createDialogOpen: true});
+    this.setState({ createDialogOpen: true,  anchorEl: null});
   };
 
   handleCreateDialogClose = (newRequirementCreated, newReqId) => {
@@ -599,7 +621,7 @@ class MainView extends React.Component {
 
   render() {
     const { classes, theme, listOfProjects, requirements } = this.props;
-    const { anchorEl, warningDialogOpen, editedProject, copiedProject } = this.state;
+    const { anchorEl, openMenu, warningDialogOpen, editedProject, copiedProject } = this.state;
 
     return (
       <div className={classes.root}>
@@ -625,7 +647,7 @@ class MainView extends React.Component {
                       size="small"
                       aria-owns={anchorEl ? 'simple-menu' : null}
                       aria-haspopup="true"
-                      onClick={this.handleProjectMenuClick}
+                      onClick={(e) => this.handleMenuClick(e,"project")}
                       style={{ textTransform : 'none' }}
                     >
                       Projects
@@ -634,7 +656,7 @@ class MainView extends React.Component {
                     <Menu
                       id="qa_proj_menu"
                       anchorEl={anchorEl}
-                      open={Boolean(anchorEl)}
+                      open={Boolean(anchorEl) && openMenu ==="project"}
                       onClose={this.handleClose}
                     >
                       <MenuItem dense>
@@ -680,9 +702,27 @@ class MainView extends React.Component {
                       }
                     </Menu>
                     &nbsp;
-                    <Button id="qa_db_btn_create" variant="contained" onClick={this.handleCreateDialogOpen} color="secondary" size="small" className={classes.button}>
+                    {/* <Button id="qa_db_btn_create" variant="contained" onClick={this.handleCreateDialogOpen} color="secondary" size="small" className={classes.button}>
                       Create
+                    </Button> */}
+                    <Button
+                      id="qa_db_btn_create"
+                      variant="contained"
+                      color="secondary"
+                      size="small"
+                      className={classes.button}
+                      onClick={(e) => this.handleMenuClick(e,"create")}>
+                      Create
+                      <KeyboardArrowDownIcon className={classes.rightIcon} fontSize="small"/>
                     </Button>
+                    <Menu
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl) && openMenu === "create"}
+                    onClose={this.handleClose}>
+                    <MenuItem onClick={this.handleCreateDialogOpen}>FRETish</MenuItem>
+                    {/* <MenuItem onClick={this.handleAnotherAction}>SLEEC</MenuItem> */}
+                    <MenuItem onClick={this.handleCreateSleecOpen}>SLEEC</MenuItem>
+                  </Menu>
                   </div>
                 </div>
               </Typography>
@@ -792,6 +832,15 @@ class MainView extends React.Component {
             editRequirement={this.state.externalRequirement}
             editVariables={this.state.externalVariables}
             />
+          <CreateSleecReqDialog
+            open={this.state.createSleecDialogOpen}
+            handleCreateDialogClose={this.handleCreateSleecClose}
+            editRequirement={this.state.externalRequirement}
+            editVariables={this.state.externalVariables}
+            // handleCreateSleecDialogClose={this.handleCreateSleecDialogClose}
+            // editRequirement={this.state.externalRequirement}
+            // editVariables={this.state.externalVariables}
+          />
           <CreateProjectDialog
               open={this.state.createProjectDialogOpen}
               handleDialogClose={this.handleCreateProjectDialogClose}
