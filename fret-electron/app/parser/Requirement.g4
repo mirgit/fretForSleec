@@ -5,7 +5,7 @@
 // Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 grammar Requirement ;
 
-reqt_body : (nasa | freeform) ('.')?
+reqt_body : (nasa | sleec | freeform) ('.')?
           ;
 
 freeform :
@@ -18,9 +18,29 @@ nasa
           (probability)?
           (timing)? response
         ;
+
+sleec : (sleec_scope)? IF trigger THEN (sleec_timing)? action ((',')? UNLESS defeater IWC (sleec_timing)? obligation)* EOF;
+
+sleec_scope : scope ;
+sleec_timing : timing ;
+
+trigger : cond_expression;
+defeater : cond_expression;
+action : obl_expression;
+obligation : obl_expression;
+
+cond_expression : '!' cond_expression | cond_expression '&' cond_expression | cond_expression '|' cond_expression | '(' cond_expression ')' | predicate ;
+obl_expression : obl_expression '&' obl_expression | '(' obl_expression ')' | predicate ;
+
+predicate : atomic_predicate | comparison_predicate | 'true' ;
+atomic_predicate  : ID;
+comparison_predicate : var_name RELATIONAL_OP var_name ;
+var_name : ID | NUMBER ;
+
 // Note: "while" was introduced because we can't have
 // "when/if/unless scope_condition" because when/if/unless
 // introduce a precondition (see qualifier_word, qualified_condition1).
+
 scope : (
     (ONLY ( ((DURING | ((WHEN | IF)? IN)) scope_mode) |
             (WHILE scope_condition) |
@@ -156,6 +176,7 @@ IMMEDIATELY : I M M E D I A T E L Y;
 IN : I N;
 INITIALLY : I N I T I A L L Y;
 IS : I S;
+IWC : I W C;
 LAST : L A S T;
 MICROSECOND : M I C R O S E C (O N D)? S?;
 MILLISECOND : M I L L I S E C (O N D)? S?;
