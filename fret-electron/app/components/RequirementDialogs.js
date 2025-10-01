@@ -16,6 +16,8 @@ import IconButton from '@material-ui/core/IconButton';
 import DisplayRequirementDialog from './DisplayRequirementDialog';
 import CreateRequirementDialog from './CreateRequirementDialog';
 import DeleteRequirementDialog from './DeleteRequirementDialog';
+import CreateSleecReqDialog from './CreateSleecReqDialog';
+import DisplaySleecReqDialog from './DisplaySleecReqDialog';
 
 
 const styles = theme => ({
@@ -75,6 +77,59 @@ class RequirementDialogs extends React.Component {
   render(){
     const { classes, selectedProject, listOfProjects, selectedRequirement, handleDialogClose } = this.props;
     const { snackBarDisplayInfo } = this.state;
+    if (selectedRequirement.sleec != undefined){
+      return (
+    <div>
+      <DisplaySleecReqDialog
+        selectedRequirement={selectedRequirement}
+        open={this.props.displayRequirementOpen}
+        handleDialogClose={this.props.handleDialogClose}
+        handleCreateDialogOpen={this.handleCreateDialogOpen}
+        handleDeleteDialogClose={this.handleDeleteDialogClose}
+        handleDeleteDialogOpen={this.handleDeleteDialogOpen}/>
+      <CreateSleecReqDialog
+        open={this.state.createDialogOpen}
+        handleCreateDialogClose={this.handleCreateDialogClose}
+        selectedProject={selectedProject}
+        editRequirement={selectedRequirement}
+        //TODO: Update eventually
+        addChildRequirementToParent={null}
+        listOfProjects={listOfProjects}
+        requirements={this.props.requirements} />
+      <DeleteRequirementDialog
+        open={this.state.deleteDialogOpen}
+        requirementsToBeDeleted={[selectedRequirement]}
+        handleDialogClose={this.handleDeleteDialogClose}
+      />
+      <Snackbar
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center',
+        }}
+        open={this.state.snackbarOpen}
+        autoHideDuration={2000}
+        onClose={this.handleSnackbarClose}
+        snackbarcontentprops={{
+          'aria-describedby': 'message-id',
+        }}
+        message={<span id="message-id">Requirement Updated</span>}
+        action={[
+          <Button key="undo" color="secondary" size="small" onClick={this.handleSnackbarClose}>
+            {this.state.snackBarDisplayInfo.modifiedReqId}
+          </Button>,
+          <IconButton
+            key="close"
+            aria-label="Close"
+            color="inherit"
+            onClick={this.handleSnackbarClose}
+          >
+            <CloseIcon />
+          </IconButton>,
+        ]} />
+      </div>
+  );
+
+    }else{
     return (
     <div>
       <DisplayRequirementDialog
@@ -126,6 +181,7 @@ class RequirementDialogs extends React.Component {
       </div>
   );
   }
+}
 }
 
 

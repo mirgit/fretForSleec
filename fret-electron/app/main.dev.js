@@ -276,6 +276,10 @@ ipcMain.handle('generateTests', async (evt, arg) => {
   return result
 })
 
+ipcMain.handle('getDoc',  async (evt, arg) => {
+  const result = await fretModel.getDoc(arg);
+  return result
+})
 /**
  * Add event listeners...
  */
@@ -308,12 +312,18 @@ app.on('ready', async () => {
       width: 1200,
       height: 1050
     });
+    // ADD THESE LINES:
+  // mainWindow.webContents.on('console-message', (event, level, message) => {
+  // console.log('Renderer console:', message);
+  // });
   } catch(error){
     console.log(`Error in main.dev : ${error}`);
   }
   require('@electron/remote/main').enable(mainWindow.webContents)
   mainWindow.loadURL(`file://${__dirname}/app.html`);
-
+  mainWindow.webContents.once('did-finish-load', () => {
+    mainWindow.webContents.openDevTools();
+  });
 /*
   if(process.env.EXTERNAL_TOOL=='1'){
     var splash = new BrowserWindow({
