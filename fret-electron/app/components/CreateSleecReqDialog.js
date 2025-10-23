@@ -34,30 +34,120 @@ import TableCell from "@material-ui/core/TableCell";
 import DeprecatedIcon from "@material-ui/icons/Close";
 
 import styles from './CreateRequirementDialog.css';
+import SleecSlateEditor from './SleecSlateEditor';
+import SleecInstructions from './SleecInstructions';
 
+import templates from '../../templates/templates';
+import {getRequirementStyle} from "../utils/utilityFunctions";
+import {withReact} from "slate-react";
+import {createEditor, Node, Range, Text, Transforms} from "slate";
+import withFields from "../utils/withFields";
+
+import { createOrUpdateRequirement } from '../reducers/allActionsSlice';
+import { connect } from "react-redux";
+
+
+
+
+const formStyles = theme => ({
+  accordion: {
+    width: '98%',
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(2),
+    marginLeft:  theme.spacing(),
+  },
+  aux:{
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(2),
+  },
+  list: {
+    width: '100%',
+  },
+  text: {
+    marginBottom: theme.spacing(3),
+  },
+  button: {
+    margin: theme.spacing(),
+  },
+  ImageList: {
+    width: 600,
+    height: 600,
+  },
+  heading: {
+  fontSize: theme.typography.pxToRem(16),
+  fontWeight: theme.typography.fontWeightRegular,
+  },
+  dialogTitle: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  selectRoot: {
+    width: 60
+  },
+});
 
 class CreateSleecReqDialog extends React.Component {
   dialogRef = React.createRef();
 
   state = {
     createSleecDialogOpen: false,
+    project: null,
+    reqid: '',
+    parent_reqid: '',
+    rationale: '',
+    comments:'',
+    focus: '',
+    status: '',
+    selectedTemplate: -1,
+    // tabValue: 0, // for three tabs in the right panel
+    editor: withReact(withFields(createEditor())),
+    dialogTop: 0,
+    dialogLeft: 0,
+    autoFillVariables: [],
+    existingFileName: '',
+    // isProbabilistic: false,
+
   };
 
   handleClose = () => {
     this.setState({ createSleecDialogOpen: false });
   };
 
-  handleTextFieldChange = () => {
-    console.log("handleTextFieldChange called in createsleec");
+  handleTextFieldChange =  name => event => {
+    this.setState({
+      [name]: event.target.value,
+    });
   };
-  handleTextFieldFocused =  () => {
-    console.log("handleTextFieldFocused called in createsleed");
+  handleTextFieldFocused = name => event => {
+    this.setState({
+      focus: name,
+    });
   };
   setDialogPosition =  () => {
-    console.log("setDialogPosition called in createsleed");
+    if(this.dialogRef && this.dialogRef.current) {
+      const { dialogTop, dialogLeft } = this.state;
+      const clientRect = this.dialogRef.current.getBoundingClientRect();
+      if (clientRect.top !== dialogTop || clientRect.left !== dialogLeft) {
+        this.setState({ dialogTop: clientRect.top, dialogLeft: clientRect.left })
+      }
+    }
   };
+
+  handleUpdateInstruction = (field) => {
+    this.setState ({
+        focus: field
+  });
+  }
+  handleUpdateSemantics = (f) => {
+    this.setState ({
+        focus: 'semantics',
+        formalization: f
+  });
+  }
+
   handleCreate =  () => {
-    console.log("handleCreate called in createsleed");
+    console.log("handleCreate called in createsleec");
   };
 
 //   componentWillReceiveProps(props, nextState) {
@@ -67,10 +157,45 @@ class CreateSleecReqDialog extends React.Component {
 //       edittingRequirement: props.editRequirement,
 //     });
 //   };
+
+  renderEditor = (inputFields, selectedTemplate) => {
+    const {dialogTop, dialogLeft} = this.state;
+    return (
+        <SleecSlateEditor
+    //   <SlateEditor2
+        // editor={this.state.editor}
+    //     onRef={ref => (this.stepper = ref)}
+    //     updateInstruction={this.handleUpdateInstruction}
+    //     updateSemantics={this.handleUpdateSemantics}
+    //     inputFields={inputFields}
+    //     template={templates[selectedTemplate]}
+    //     autoFillVariables={this.state.autoFillVariables}
+    //     dialogTop={dialogTop}
+    //     dialogLeft={dialogLeft}
+    //     // switchProbabilisticHandler ={this.switchProbabilisticHandler}
+        />
+    )
+  }
+
   render() {
-        const { classes, open, onClose } = this.props;
-        const dialogTitle = "Create Sleec";
-        const commitButtonText = "Create";
+    //temp variable settings:
+    const isRequirementUpdate = false;
+    const { edittingRequirement, selectedTemplate} = this.state;
+    const { classes, open, onClose } = this.props;
+    const actionLabel = isRequirementUpdate ? 'Update' : 'Create';
+    const dialogTitle = actionLabel + 'SLEEC Requirement';
+    const commitButtonText = actionLabel
+    const fulltext = isRequirementUpdate ? edittingRequirement.fulltext : undefined
+    const templateValues = isRequirementUpdate ? edittingRequirement.template : undefined
+    
+
+    const statusSelectStyle = {
+      borderStyle: 'None',
+      borderWidth: 1,
+      borderRadius: 5,
+    }
+    const colorStyle = isRequirementUpdate ? getRequirementStyle({semantics, fulltext},false) : 'req-grey';
+        
     return (
         <div className={classes.root}>
                 <Dialog
@@ -86,14 +211,14 @@ class CreateSleecReqDialog extends React.Component {
                 >
                   <div className={styles.layout}>
                     <div className={styles.form}>
-                    <DialogTitle id="qa_crt_title"
+                    <DialogTitle id="qa_crt_sleec_title"
                                  ref={this.dialogRef}>
                         <div className={classes.dialogTitle}>
                           {dialogTitle}
                           <FormControl >
                             <InputLabel id="status">Status</InputLabel>
-                            {/* <Select
-                              id="qa_crt_select_status"
+                            <Select
+                              id="qa_crt_sleec_select_status"
                               classes={{ root: classes.selectRoot }}
                               style={statusSelectStyle}
                               disableUnderline
@@ -101,28 +226,28 @@ class CreateSleecReqDialog extends React.Component {
                               value={this.state.status}
                               onChange={this.handleTextFieldChange('status')}
                             >
-                              <MenuItem id ="qa_crt_mi_statusNone" value="None"/>
-                              <MenuItem id ="qa_crt_mi_statusInProgress" value={'in progress'}>
+                              <MenuItem id ="qa_crt_sleec_mi_statusNone" value="None"/>
+                              <MenuItem id ="qa_crt_sleec_mi_statusInProgress" value={'in progress'}>
                                 <Tooltip title="In progress"><InProgressIcon className={classes.inProgressIcon}/></Tooltip>
                               </MenuItem>
-                              <MenuItem id ="qa_crt_mi_statusPaused" value={'paused'}>
+                              <MenuItem id ="qa_crt_sleec_mi_statusPaused" value={'paused'}>
                                 <Tooltip title="Paused"><PauseIcon className={classes.pauseIcon}/></Tooltip>
                               </MenuItem>
-                              <MenuItem id ="qa_crt_mi_statusCompleted" value={'completed'}>
+                              <MenuItem id ="qa_crt_sleec_mi_statusCompleted" value={'completed'}>
                                 <Tooltip title="Completed"><CompletedIcon className={classes.completedIcon}/></Tooltip>
                               </MenuItem>
-                              <MenuItem id ="qa_crt_mi_statusAttention" value={'attention'}>
+                              <MenuItem id ="qa_crt_sleec_mi_statusAttention" value={'attention'}>
                                 <Tooltip title="Attention"><AttentionIcon className={classes.attentionIcon}/></Tooltip>
                               </MenuItem>
-                              <MenuItem id ="qa_crt_mi_statusDeprecated" value={'deprecated'}>
+                              <MenuItem id ="qa_crt_sleec_mi_statusDeprecated" value={'deprecated'}>
                                 <Tooltip title="Deprecated"><DeprecatedIcon/></Tooltip>
                               </MenuItem>
-                            </Select> */}
+                            </Select>
                           </FormControl>
                         </div>
                       </DialogTitle>
                       <Divider/>
-                      {/* <DialogContent>
+                      <DialogContent>
                             <DialogContentText>
                             &nbsp;
                             </DialogContentText>
@@ -151,7 +276,7 @@ class CreateSleecReqDialog extends React.Component {
                               <ImageListItem >
                                 <FormControl fullWidth>
                                   <InputLabel htmlFor="project-field">Project</InputLabel>
-                                  <Select id="qa_crt_select_project"
+                                  <Select id="qa_crt_sleec_select_project"
                                     value={this.state.project || ''}
                                     onChange={this.handleTextFieldChange('project')}
                                     inputProps={{
@@ -162,7 +287,7 @@ class CreateSleecReqDialog extends React.Component {
                                     {
                                       this.props.listOfProjects.map(name => {
                                         return(
-                                          <MenuItem id={"qa_crt_select_project_"+name} value={name} key={name}>{name}</MenuItem>
+                                          <MenuItem id={"qa_crt_sleec_select_project_"+name} value={name} key={name}>{name}</MenuItem>
                                         )
                                       })
                                     }
@@ -171,13 +296,13 @@ class CreateSleecReqDialog extends React.Component {
                               </ImageListItem>
                               <ImageListItem cols={3} className={classes.aux}>
                                 <Accordion className={classes.accordion}>
-                                  <AccordionSummary id="qa_crt_as_rationaleComments" expandIcon={<ExpandMoreIcon />}>
-                                    <Typography id="qa_crt_as_rationaleComments_t" className={classes.heading}>Rationale and Comments</Typography>
+                                  <AccordionSummary id="qa_crt_sleec_as_rationaleComments" expandIcon={<ExpandMoreIcon />}>
+                                    <Typography id="qa_crt_sleec_as_rationaleComments_t" className={classes.heading}>Rationale and Comments</Typography>
                                 </AccordionSummary>
                                 <AccordionDetails>
                                 <div className={classes.list}>
                                 <TextField
-                                  id="qa_crt_tf_rationale"
+                                  id="qa_crt_sleec_tf_rationale"
                                   label="Rationale"
                                   type="text"
                                   defaultValue={this.state.rationale}
@@ -188,7 +313,7 @@ class CreateSleecReqDialog extends React.Component {
                                   className={classes.text}
                                 />
                                 <TextField
-                                  id="qa_crt_tf_comments"
+                                  id="qa_crt_sleec_tf_comments"
                                   label="Comments"
                                   type="text"
                                   defaultValue={this.state.comments}
@@ -207,15 +332,20 @@ class CreateSleecReqDialog extends React.Component {
                               fulltext,
                               templateValues
                             }, selectedTemplate)}
-                      </DialogContent> */}
+                      </DialogContent>
                       <DialogActions>
                         <Button id="qa_crtsleec_btn_cancel" onClick={onClose}>
                           Cancel
                         </Button>
-                        <Button id="qa_crt_btn_create" onClick={this.handleCreate} color="secondary" variant='contained'>
+                        <Button id="qa_crtsleec_btn_create" onClick={this.handleCreate} color="secondary" variant='contained'>
                           {commitButtonText}
                         </Button>
                       </DialogActions>
+                    </div>
+                    <div className={styles.instruction}>
+                        <SleecInstructions 
+                        editorText={this.state.fulltext} 
+                        />
                     </div>
                   </div>
                 </Dialog>
@@ -229,4 +359,19 @@ CreateSleecReqDialog.propTypes = {
   onClose: PropTypes.func.isRequired,
 };
 
-export default withStyles(styles)(CreateSleecReqDialog);
+function mapStateToProps(state) {
+  const requirements = state.actionsSlice.requirements;
+  const listOfProjects = state.actionsSlice.listOfProjects;
+  const selectedProject = state.actionsSlice.selectedProject;
+  return {
+    requirements,
+    listOfProjects,
+    selectedProject,
+  };
+}
+const mapDispatchToProps = {
+  createOrUpdateRequirement
+};
+
+export default withStyles(formStyles)
+  (connect(mapStateToProps,mapDispatchToProps)(CreateSleecReqDialog));
