@@ -5,6 +5,9 @@ import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
 
 const FretSemantics = require('../parser/FretSemantics');
+const SleecSemanticsAnalyzer = require('../parser/SleecSemanticsAnalyzer').SleecSemanticsAnalyzer;
+const sleecsemanticsAnalyzer = new SleecSemanticsAnalyzer();
+
 
 class SleecSlateEditor extends React.Component {
   state = {
@@ -14,41 +17,84 @@ class SleecSlateEditor extends React.Component {
     buttonClicked: false  // Track if semantics button was clicked
 
   }
+  componentDidMount() {
+    if (this.props.onRef){
+      this.props.onRef(this);
+    }
+
+    if (this.props.fulltext) {
+      this.setState({ fulltext: this.props.fulltext });
+    }
+  }
+  componentWillUnmount() {
+    // Unregister when unmounting
+    if (this.props.onRef) {
+      this.props.onRef(null);
+    }
+  }
+  // Update if props change (for editing existing requirements)
+  componentDidUpdate(prevProps) {
+    if (prevProps.fulltext !== this.props.fulltext && this.props.fulltext) {
+      this.setState({ fulltext: this.props.fulltext });
+    }
+  }
+
+  getChildrenRequirements = () => {
+
+    return this.semantics;
+    //semantics after compile
+  }
+
 
   handleTextChange = (event) => {
     const fulltext = event.target.value;
     
     // Parse while typing to show errors in real-time
+    //MM: change to SLEEC ones..
     const result = FretSemantics.compilePartialText(fulltext);
     
     this.setState({ 
       fulltext,
       errors: result.parseErrors || null,
     });
+//CLAUDE
+    // if (this.props.onTextChange) {
+    //   this.props.onTextChange(fulltext);
+    // }
   }
   handleSemanticsClick = () => {
     const result = FretSemantics.compile(this.state.fulltext);
-    
+    console.log(JSON.stringify(sleecsemanticsAnalyzer.semantics()));
     if (result.parseErrors) {
       this.setState({ 
         errors: result.parseErrors,
         semantics: null,
         buttonClicked: true
       });
-    } else if (result.collectedSemantics) {
+//CLAUDE{
+      // Notify parent about errors
+      if (this.props.onSemanticsUpdate) {
+        this.props.onSemanticsUpdate(null, result.parseErrors);
+      }
+    }
+       else if (result.collectedSemantics) {
       this.setState({ 
         semantics: result.collectedSemantics,
         errors: null,
         buttonClicked: true
       });
       
-      // TODO: Send semantics to backend here
-      console.log('Semantics:', result.collectedSemantics);
+      // Notify parent about successful semantics extraction
+      if (this.props.onSemanticsUpdate) {
+        this.props.onSemanticsUpdate(result.collectedSemantics, null);
+      }
     }
+//}CLAUDE
+
   }
 
   render() {
-    const { classes } = this.props;
+    // const { classes } = this.props;
     const { fulltext, errors, semantics } = this.state;
   
     return (

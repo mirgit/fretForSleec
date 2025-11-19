@@ -107,6 +107,8 @@ class CreateSleecReqDialog extends React.Component {
     autoFillVariables: [],
     existingFileName: '',
     // isProbabilistic: false,
+    fulltext : '',
+    currentSemantics : null,
 
   };
 
@@ -139,16 +141,25 @@ class CreateSleecReqDialog extends React.Component {
         focus: field
   });
   }
-  handleUpdateSemantics = (f) => {
+
+  
+  handleUpdateSemantics = (semantics,error) => {
+    console.log('handleUpdateSemantics:\n\n', JSON.stringify(semantics));
     this.setState ({
-        focus: 'semantics',
-        formalization: f
+        currentSemantics: semantics,
   });
   }
 
-  handleCreate =  () => {
-    console.log("handleCreate called in createsleec");
-  };
+  handleTextChange = (fulltext) => {
+    this.setState({
+      fulltext: fulltext
+    });
+  }
+
+  
+  handleCreate = async ()  => {
+  }
+
 
 //   componentWillReceiveProps(props, nextState) {
 //     this.setState({
@@ -162,6 +173,14 @@ class CreateSleecReqDialog extends React.Component {
     const {dialogTop, dialogLeft} = this.state;
     return (
         <SleecSlateEditor
+         fulltext={inputFields.fulltext}         
+      templateValues={inputFields.templateValues}
+      selectedTemplate={selectedTemplate}
+      onRef={ref => (this.stepper = ref)}
+      onTextChange={this.handleTextChange}
+      onSemanticsUpdate={this.handleUpdateSemantics}
+      />
+
     //   <SlateEditor2
         // editor={this.state.editor}
     //     onRef={ref => (this.stepper = ref)}
@@ -173,7 +192,6 @@ class CreateSleecReqDialog extends React.Component {
     //     dialogTop={dialogTop}
     //     dialogLeft={dialogLeft}
     //     // switchProbabilisticHandler ={this.switchProbabilisticHandler}
-        />
     )
   }
 
@@ -187,7 +205,8 @@ class CreateSleecReqDialog extends React.Component {
     const commitButtonText = actionLabel
     const fulltext = isRequirementUpdate ? edittingRequirement.fulltext : undefined
     const templateValues = isRequirementUpdate ? edittingRequirement.template : undefined
-    
+    const sleecChildren = this.stepper ? this.stepper.getChildrenRequirements() : undefined;
+
 
     const statusSelectStyle = {
       borderStyle: 'None',
@@ -344,7 +363,7 @@ class CreateSleecReqDialog extends React.Component {
                     </div>
                     <div className={styles.instruction}>
                         <SleecInstructions 
-                        editorText={this.state.fulltext} 
+                        semantics={this.state.currentSemantics || fulltext}
                         />
                     </div>
                   </div>

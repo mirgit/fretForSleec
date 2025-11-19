@@ -21,42 +21,57 @@ const styles = theme => ({
   }
 });
 
-class SleecInstructions extends React.Component {
-  render() {
-    const { classes, editorText, errors, semantics } = this.props;
 
+
+class SleecInstructions extends React.Component {
+
+
+  render() {
+    const { data, classes, editorText, errors, semantics } = this.props;
     return (
       <div style={{ padding: '24px' }}>
+        {Array.isArray(semantics) && semantics.length > 0 && (
+      <Typography variant='subtitle1' gutterBottom>
+        FRETish child requirements:
+      </Typography>
+    )}
+        {semantics && Object.keys(semantics).length > 0 ? (
+          // Check if semantics is an array
+          Array.isArray(semantics) ? (
+            
+            semantics.map((item, index) => (
+              <Accordion key={index} >
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography className={classes.heading}>
+                    reqID_{index + 1}:
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <div className={classes.content}>
+                    <pre>{JSON.stringify(item, null, 2)}</pre>
+                  </div>
+                </AccordionDetails>
+              </Accordion>
+            ))
+          ) : (
+            // If semantics is an object, treat it as a single item
+            <Accordion >
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography className={classes.heading}>
+                  reqID_1:
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <div className={classes.content}>
+                  <pre>{JSON.stringify(semantics, null, 2)}</pre>
+                </div>
+              </AccordionDetails>
+            </Accordion>
+          )
+        ) :(
         <Typography variant='subtitle1' gutterBottom>
-          FRETish child requirements:
+        Press "MAP TO FRETISH" to see the child requirements. 
         </Typography>
-        
-        <Accordion defaultExpanded>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography className={classes.heading}>
-              reqID 1:
-            </Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <div className={classes.content}>
-              {editorText || 'No text entered yet'}
-            </div>
-          </AccordionDetails>
-        </Accordion>
-   
-       {semantics && Object.keys(semantics).length > 0 && (
-          <Accordion defaultExpanded>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography className={classes.heading} style={{color: 'green'}}>
-                Semantics
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <div className={classes.semantics}>
-                <pre>{JSON.stringify(semantics, null, 2)}</pre>
-              </div>
-            </AccordionDetails>
-          </Accordion>
         )}
         </div>
     );

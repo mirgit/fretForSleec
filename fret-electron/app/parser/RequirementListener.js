@@ -1,8 +1,3 @@
-// Copyright © 2025, United States Government, as represented by the Administrator of the National Aeronautics and Space Administration. All rights reserved.
-// 
-// The “FRET : Formal Requirements Elicitation Tool - Version 3.0” software is licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
-// 
-// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 // Generated from Requirement.g4 by ANTLR 4.8
 // jshint ignore: start
 var antlr4 = require('antlr4/index');
@@ -40,6 +35,105 @@ RequirementListener.prototype.enterNasa = function(ctx) {
 
 // Exit a parse tree produced by RequirementParser#nasa.
 RequirementListener.prototype.exitNasa = function(ctx) {
+};
+
+
+// Enter a parse tree produced by RequirementParser#sleec.
+RequirementListener.prototype.enterSleec = function(ctx) {
+};
+
+// Exit a parse tree produced by RequirementParser#sleec.
+RequirementListener.prototype.exitSleec = function(ctx) {
+};
+
+
+// Enter a parse tree produced by RequirementParser#trigger.
+RequirementListener.prototype.enterTrigger = function(ctx) {
+};
+
+// Exit a parse tree produced by RequirementParser#trigger.
+RequirementListener.prototype.exitTrigger = function(ctx) {
+};
+
+
+// Enter a parse tree produced by RequirementParser#defeater.
+RequirementListener.prototype.enterDefeater = function(ctx) {
+};
+
+// Exit a parse tree produced by RequirementParser#defeater.
+RequirementListener.prototype.exitDefeater = function(ctx) {
+};
+
+
+// Enter a parse tree produced by RequirementParser#action.
+RequirementListener.prototype.enterAction = function(ctx) {
+};
+
+// Exit a parse tree produced by RequirementParser#action.
+RequirementListener.prototype.exitAction = function(ctx) {
+};
+
+
+// Enter a parse tree produced by RequirementParser#obligation.
+RequirementListener.prototype.enterObligation = function(ctx) {
+};
+
+// Exit a parse tree produced by RequirementParser#obligation.
+RequirementListener.prototype.exitObligation = function(ctx) {
+};
+
+
+// Enter a parse tree produced by RequirementParser#cond_expression.
+RequirementListener.prototype.enterCond_expression = function(ctx) {
+};
+
+// Exit a parse tree produced by RequirementParser#cond_expression.
+RequirementListener.prototype.exitCond_expression = function(ctx) {
+};
+
+
+// Enter a parse tree produced by RequirementParser#obl_expression.
+RequirementListener.prototype.enterObl_expression = function(ctx) {
+};
+
+// Exit a parse tree produced by RequirementParser#obl_expression.
+RequirementListener.prototype.exitObl_expression = function(ctx) {
+};
+
+
+// Enter a parse tree produced by RequirementParser#predicate.
+RequirementListener.prototype.enterPredicate = function(ctx) {
+};
+
+// Exit a parse tree produced by RequirementParser#predicate.
+RequirementListener.prototype.exitPredicate = function(ctx) {
+};
+
+
+// Enter a parse tree produced by RequirementParser#atomic_predicate.
+RequirementListener.prototype.enterAtomic_predicate = function(ctx) {
+};
+
+// Exit a parse tree produced by RequirementParser#atomic_predicate.
+RequirementListener.prototype.exitAtomic_predicate = function(ctx) {
+};
+
+
+// Enter a parse tree produced by RequirementParser#comparison_predicate.
+RequirementListener.prototype.enterComparison_predicate = function(ctx) {
+};
+
+// Exit a parse tree produced by RequirementParser#comparison_predicate.
+RequirementListener.prototype.exitComparison_predicate = function(ctx) {
+};
+
+
+// Enter a parse tree produced by RequirementParser#var_name.
+RequirementListener.prototype.enterVar_name = function(ctx) {
+};
+
+// Exit a parse tree produced by RequirementParser#var_name.
+RequirementListener.prototype.exitVar_name = function(ctx) {
 };
 
 
