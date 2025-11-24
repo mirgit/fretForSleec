@@ -309,10 +309,10 @@ app.on('ready', async () => {
       height: 1050
     });
     // ADD THESE LINES:
-  mainWindow.webContents.openDevTools();
-  mainWindow.webContents.on('console-message', (event, level, message) => {
-  console.log('Renderer console:', message);
-  });
+  // mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.on('console-message', (event, level, message) => {
+  // console.log('Renderer console:', message);
+  // });
   } catch(error){
     console.log(`Error in main.dev : ${error}`);
   }

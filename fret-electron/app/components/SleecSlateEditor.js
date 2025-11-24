@@ -4,9 +4,15 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
 
+const antlr4 = require('antlr4/index');
+const RequirementLexer = require('../parser/RequirementLexer');
+const RequirementParser = require('../parser/RequirementParser');
+
 const FretSemantics = require('../parser/FretSemantics');
 const SleecSemanticsAnalyzer = require('../parser/SleecSemanticsAnalyzer').SleecSemanticsAnalyzer;
 const sleecsemanticsAnalyzer = new SleecSemanticsAnalyzer();
+
+const REQ_BODY_CTX_RULE = 'reqt_body'
 
 
 class SleecSlateEditor extends React.Component {
@@ -17,6 +23,7 @@ class SleecSlateEditor extends React.Component {
     buttonClicked: false  // Track if semantics button was clicked
 
   }
+
   componentDidMount() {
     if (this.props.onRef){
       this.props.onRef(this);
@@ -45,17 +52,40 @@ class SleecSlateEditor extends React.Component {
     //semantics after compile
   }
 
+  sleecCompile(text) {
+    // let trimmedText = trimReqtText(text)
+    var chars = new antlr4.InputStream(text);
+    var lexer = new RequirementLexer.RequirementLexer(chars);
+    var tokens  = new antlr4.CommonTokenStream(lexer);
+    var parser = new RequirementParser.RequirementParser(tokens);
+    // var annotations = [];
+    // var listener = new AnnotatingErrorListener.AnnotatingErrorListener(annotations);
+    // lexer.removeErrorListeners();
+    // lexer.addErrorListener(listener);
+    // parser.removeErrorListeners();
+    // parser.addErrorListener(listener);
+    var tree = parser[REQ_BODY_CTX_RULE]();
+    // if (annotations.length > 0)
+    //   return {parseErrors: annotations.map(a => a.text).join('; ' )}
+    sleecsemanticsAnalyzer.clearResult();
+    antlr4.tree.ParseTreeWalker.DEFAULT.walk(sleecsemanticsAnalyzer, tree);
+    // const reqtErrors = checkReqt(text)
+    // if (reqtErrors.length > 0) return {parseErrors: reqtErrors}else return {
+      this.state.semantics = sleecsemanticsAnalyzer.semantics();
+      return this.state.semantics;
+
+  }
+
 
   handleTextChange = (event) => {
     const fulltext = event.target.value;
     
     // Parse while typing to show errors in real-time
     //MM: change to SLEEC ones..
-    const result = FretSemantics.compilePartialText(fulltext);
-    
+    // const result = FretSemantics.compilePartialText(fulltext);
     this.setState({ 
       fulltext,
-      errors: result.parseErrors || null,
+      // errors: result.parseErrors || null,
     });
 //CLAUDE
     // if (this.props.onTextChange) {
@@ -63,8 +93,14 @@ class SleecSlateEditor extends React.Component {
     // }
   }
   handleSemanticsClick = () => {
-    const result = FretSemantics.compile(this.state.fulltext);
-    console.log(JSON.stringify(sleecsemanticsAnalyzer.semantics()));
+    let fretish_break = this.sleecCompile(this.state.fulltext)
+    let result=[];
+    fretish_break.forEach(element => {
+      result.push({...FretSemantics.compile(element),fulltext: element});
+    });
+    // const result = FretSemantics.compile(this.state.fulltext);
+    console.log(result);
+
     if (result.parseErrors) {
       this.setState({ 
         errors: result.parseErrors,
@@ -77,7 +113,7 @@ class SleecSlateEditor extends React.Component {
         this.props.onSemanticsUpdate(null, result.parseErrors);
       }
     }
-       else if (result.collectedSemantics) {
+       else{
       this.setState({ 
         semantics: result.collectedSemantics,
         errors: null,
@@ -86,7 +122,7 @@ class SleecSlateEditor extends React.Component {
       
       // Notify parent about successful semantics extraction
       if (this.props.onSemanticsUpdate) {
-        this.props.onSemanticsUpdate(result.collectedSemantics, null);
+        this.props.onSemanticsUpdate(result, null);
       }
     }
 //}CLAUDE

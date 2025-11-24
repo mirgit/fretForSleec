@@ -47,6 +47,24 @@ RequirementListener.prototype.exitSleec = function(ctx) {
 };
 
 
+// Enter a parse tree produced by RequirementParser#sleec_scope.
+RequirementListener.prototype.enterSleec_scope = function(ctx) {
+};
+
+// Exit a parse tree produced by RequirementParser#sleec_scope.
+RequirementListener.prototype.exitSleec_scope = function(ctx) {
+};
+
+
+// Enter a parse tree produced by RequirementParser#sleec_timing.
+RequirementListener.prototype.enterSleec_timing = function(ctx) {
+};
+
+// Exit a parse tree produced by RequirementParser#sleec_timing.
+RequirementListener.prototype.exitSleec_timing = function(ctx) {
+};
+
+
 // Enter a parse tree produced by RequirementParser#trigger.
 RequirementListener.prototype.enterTrigger = function(ctx) {
 };

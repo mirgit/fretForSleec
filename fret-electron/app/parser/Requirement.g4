@@ -19,7 +19,10 @@ nasa
           (timing)? response
         ;
 
-sleec : (scope)? IF trigger THEN (timing)? action ((',')? UNLESS defeater IWC (timing)? obligation)* EOF;
+sleec : (sleec_scope)? IF trigger THEN (sleec_timing)? action ((',')? UNLESS defeater IWC (sleec_timing)? obligation)* EOF;
+
+sleec_scope : scope ;
+sleec_timing : timing ;
 
 trigger : cond_expression;
 defeater : cond_expression;

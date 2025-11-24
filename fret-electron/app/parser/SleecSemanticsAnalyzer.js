@@ -17,6 +17,7 @@ function initialize(type) {
       prev_conds : '',
       last_cond : '',
       last_time : '',
+      prev_time : '',
       last_oblg : '',
       FRETishReqs : []
 //      timing: 'null',
@@ -38,46 +39,48 @@ RequirementListener.prototype.enterSleec = function(ctx) {
   initialize('Sleec');
 };
 RequirementListener.prototype.exitSleec = function(ctx) {
-    let newrule = sleecParse.scope+' Whenever ( '+ sleecParse.prev_conds+' & '+
-                    sleecParse.last_cond+' ) Component shall '+sleecParse.last_time+' satisfy '+ sleecParse.last_oblg;
-    sleecParse.FRETishReqs.push(newrule);
-    
-    
+    let conds = sleecParse.prev_conds;
+     if(sleecParse.last_cond !=''){
+        conds+= '& ' + sleecParse.last_cond;
+    }
+    let finalrule = sleecParse.scope+'Whenever ('+ conds+') Component shall '+sleecParse.last_time+'satisfy '+ sleecParse.last_oblg;
+    sleecParse.FRETishReqs.push(finalrule);
 };
 
-SleecSemanticsAnalyzer.prototype.enterScope = function(ctx){
-  sleecParse.scope = antlrUtilities.getText(ctx).trim();
+RequirementListener.prototype.enterSleec_scope = function(ctx){
+  sleecParse.scope = antlrUtilities.getText(ctx).trim()+' ';
 
 };
 
-SleecSemanticsAnalyzer.prototype.enterTrigger = function(ctx) {
+RequirementListener.prototype.enterTrigger = function(ctx) {
     sleecParse.prev_conds = antlrUtilities.getText(ctx).trim();
 };
 
 
-SleecSemanticsAnalyzer.prototype.enterDefeater = function(ctx) {
+RequirementListener.prototype.enterDefeater = function(ctx) {
+    sleecParse.prev_time = sleecParse.last_time;
+    sleecParse.last_time = '';
     if(sleecParse.last_cond !=''){
-        sleecParse.prev_conds+= '& ' + last_cond;
+        sleecParse.prev_conds+= '& ' + sleecParse.last_cond;
     }
     sleecParse.last_cond = antlrUtilities.getText(ctx).trim();
 
 };
 
 
-SleecSemanticsAnalyzer.prototype.enterAction = function(ctx) {
+RequirementListener.prototype.enterAction = function(ctx) {
     sleecParse.last_oblg = antlrUtilities.getText(ctx).trim();
 };
 
 
-SleecSemanticsAnalyzer.prototype.enterObligation = function(ctx) {
-    let newrule = sleecParse.scope+' Whenever ( '+ sleecParse.prev_conds+' & ! '+
-                    sleecParse.last_cond+' ) Component shall '+sleecParse.last_time+' satisfy '+ sleecParse.last_oblg;
+RequirementListener.prototype.enterObligation = function(ctx) {
+    let newrule = sleecParse.scope+'Whenever ('+ sleecParse.prev_conds+' & ! '+ sleecParse.last_cond+') Component shall '+sleecParse.prev_time+'satisfy '+ sleecParse.last_oblg;
     sleecParse.FRETishReqs.push(newrule);
     sleecParse.last_oblg = antlrUtilities.getText(ctx).trim();
 };
 
-SleecSemanticsAnalyzer.prototype.enterTiming = function(ctx) {
-    sleecParse.last_time = antlrUtilities.getText(ctx).trim();
+RequirementListener.prototype.enterSleec_timing = function(ctx) {
+    sleecParse.last_time = antlrUtilities.getText(ctx).trim()+' ';
 };
 
 SleecSemanticsAnalyzer.prototype.semantics = () => {
@@ -85,7 +88,7 @@ SleecSemanticsAnalyzer.prototype.semantics = () => {
 };
 
 
-SleecSemanticsAnalyzer.prototype.clearSemantics = () => {
+SleecSemanticsAnalyzer.prototype.clearResult = () => {
     sleecParse = {};
 };
 

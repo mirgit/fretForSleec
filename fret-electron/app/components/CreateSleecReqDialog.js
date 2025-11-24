@@ -156,9 +156,134 @@ class CreateSleecReqDialog extends React.Component {
     });
   }
 
-  
-  handleCreate = async ()  => {
-  }
+    handleCreate = async ()  => {}
+  //   if (! this.state.createSleecDialogOpen){return;}
+  //   this.setState({
+  //     createSleecDialogOpen: false
+  //   });
+  //   var self = this;
+  //   const { edittingRequirement, project, reqid, parent_reqid, rationale, comments} = this.state;
+  //   var requirementFields = this.stepper.getChildrenRequirements();
+  //   var { fulltext, semantics, input, template } = requirementFields;
+
+  //   var newReqId = this.state.reqid;
+  //   var dbid = edittingRequirement && Object.keys(edittingRequirement).length > 0 ? edittingRequirement._id : uuidv1()
+  //   var dbrev = edittingRequirement && Object.keys(edittingRequirement).length > 0 ? edittingRequirement._rev : undefined
+  //   var oldVariables = [];
+  //   var edittedFields = this.state;
+  //   var reqEditFields ={};
+
+  //   reqEditFields.reqid = edittedFields.reqid;
+  //   reqEditFields.parent_reqid = edittedFields.parent_reqid;
+  //   reqEditFields.project = edittedFields.project;
+  //   reqEditFields.rationale = edittedFields.rationale;
+  //   reqEditFields.comments = edittedFields.comments;
+  //   reqEditFields.status = edittedFields.status;
+  //   reqEditFields.fulltext = edittedFields.fulltext;
+  //   reqEditFields.semantics = edittedFields.semantics;
+  //   reqEditFields.template = edittedFields.template;
+  //   reqEditFields.input = edittedFields.input;
+  //   var args = [dbid, dbrev, reqEditFields, requirementFields,semantics,project]
+  //   // what if process.env.EXTERNAL_TOOL=='1'
+  //   // context isolation
+
+  //   if(process.env.EXTERNAL_TOOL=='1'){
+
+  //     var userDocumentsFolder = app.getPath('documents');
+  //     var ext_exp_json_file = '';
+  //     var ext_exp_json_file_exists =  false;
+
+  //     if (typeof process.env.EXTERNAL_EXP_JSON === "undefined"){
+  //       ext_exp_json_file = path.join(userDocumentsFolder,'requirement.json');
+  //     } else {
+  //       ext_exp_json_file = process.env.EXTERNAL_EXP_JSON+'.json';
+  //     }
+
+  //     // TBD replace fs.existSync with web based method
+  //     if (fs.existsSync(ext_exp_json_file)) {
+  //       // path exists, use same file name
+  //       ext_exp_json_file_exists =  true;
+  //     } else {
+  //       var dirName = path.dirname(ext_exp_json_file)
+  //       if (fs.existsSync(dirName)) {
+  //         // if directory exists then use env assignment
+  //       } else {
+  //         // directory doesn't exist, use default name
+  //         ext_exp_json_file = path.join(userDocumentsFolder, 'requirement.json')
+  //       }
+  //     }
+
+  //     // check again since ext_exp_json_file may be redefined
+  //     if (fs.existsSync(ext_exp_json_file)) {
+  //       // path exists, use same file name
+  //       ext_exp_json_file_exists =  true;
+  //       console.log('ext_exp_json_file_exists: ', ext_exp_json_file_exists)
+  //     }
+
+  //     if(ext_exp_json_file_exists){
+  //       // pop up warning
+  //       console.log('Overwriting existing external export file: ', ext_exp_json_file);
+  //     }
+
+  //     var filepath = ext_exp_json_file;
+
+  //     let doc = ({"requirement": {"reqid" :this.state.reqid,
+  //                 "parent_reqid": this.state.parent_reqid,
+  //                 "project": this.state.project,
+  //                 "rationale": this.state.rationale,
+  //                 "comments": this.state.comments,
+  //                 "status": this.state.status,
+  //                 "fulltext": fulltext,
+  //                 "template": template,
+  //                 "semantics": semantics,
+  //                 "input": input}});
+
+  //     fs.writeFile(filepath, JSON.stringify(doc, null, 4), (err) => {
+  //         if(err) {
+  //           return console.log(err);
+  //         }
+  //         ipcRenderer.send('closeFRET');
+  //     })
+  //   } else{
+
+
+  //     //////// ***
+  //     // console.log('CreateRequirementDialog ipcRenderer createOrUpdateRequirement', args);
+  //     ipcRenderer.invoke('createOrUpdateRequirement',args).then((result) => {
+  //       // console.log('payload2 CreateRequirementDialog createOrUpdateRequirement in : ',result)
+  //       // console.log('result.reqCreated CreateRequirementDialog createOrUpdateRequirement in : ',result.reqCreated)
+  //       // console.log('result.requirements CreateRequirementDialog createOrUpdateRequirement in : ',result.requirements)
+  //       if (result.reqCreated) {
+  //         self.state.dialogCloseListener(true, newReqId);
+  //       } else {
+  //         self.state.dialogCloseListener(false);
+  //       }
+  //       this.props.createOrUpdateRequirement({ type: 'actions/createOrUpdateRequirement',
+  //                                               requirements: result.requirements,
+  //                                               // analysis
+  //                                               components : result.components,
+  //                                               completedComponents : result.completedComponents,
+  //                                               cocospecData : result.cocospecData,
+  //                                               cocospecModes : result.cocospecModes,
+  //                                               smvCompletedComponents: result.smvCompletedComponents,
+  //                                               booleanOnlyComponents: result.booleanOnlyComponents,
+  //                                               // variables
+  //                                               variable_data : result.variable_data,
+  //                                               modelComponent : result.modelComponent,
+  //                                               modelVariables : result.modelVariables,
+  //                                               selectedVariable : result.selectedVariable,
+  //                                               importedComponents : result.importedComponents,                                                
+  //                                               })
+
+  //     }).catch((err) => {
+  //       console.log(err);
+  //     })
+
+  //     this.setState({ projectName: '' });
+  // //////// ***
+  //   }
+  // };
+
 
 
 //   componentWillReceiveProps(props, nextState) {
