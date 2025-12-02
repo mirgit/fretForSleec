@@ -698,9 +698,9 @@ export default class FretModel {
         var filteredReqs = result.rows
           .filter(r => !system_DBkeys.includes(r.key))
           .filter(r => filterOff || r.doc.project == project)
-        filteredReqs.forEach((r) => {
-          var doc = (({reqid, parent_reqid, project, rationale, comments, fulltext, status, semantics, input, _id}) =>
-            ({reqid, parent_reqid, project, rationale, comments, fulltext, status, semantics, input, _id}))(r.doc)
+        filteredReqs.forEach((r) => {//Mahrokh: added sleec here
+          var doc = (({reqid, parent_reqid, project, rationale, comments, fulltext, status, semantics, sleec, input, _id}) =>
+            ({reqid, parent_reqid, project, rationale, comments, fulltext, status, semantics, sleec, input, _id}))(r.doc)
           //console.log('FretModel exportReq, before _id',r.doc._id)
           //doc._id = uuidv1()
           //console.log('FretModel exportReq, after _id',doc._id)
@@ -781,9 +781,9 @@ export default class FretModel {
         var filteredReqs = result.rows
           .filter(r => !system_DBkeys.includes(r.key))
           .filter(r => filterOff || r.doc.project == project)
-        filteredReqs.forEach((r) => {
-          var doc = (({reqid, parent_reqid, project, rationale, comments, fulltext, semantics, input, status}) =>
-            ({reqid, parent_reqid, project, rationale, comments, fulltext, semantics, input, status}))(r.doc)
+        filteredReqs.forEach((r) => {// Mahrokh: added sleec here
+          var doc = (({reqid, parent_reqid, project, rationale, comments, fulltext, semantics, sleec, input, status}) =>
+            ({reqid, parent_reqid, project, rationale, comments, fulltext, semantics, sleec, input, status}))(r.doc)
           doc._id = uuidv1()
           filteredResult.push(doc)
         })

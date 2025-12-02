@@ -18,10 +18,9 @@ const REQ_BODY_CTX_RULE = 'reqt_body'
 class SleecSlateEditor extends React.Component {
   state = {
     fulltext: '',
-    semantics: null,      // Will be set when button clicked
-    errors: null,         // Real-time errors while typing
-    buttonClicked: false  // Track if semantics button was clicked
-
+    semantics: null,      
+    errors: null,
+    fretishSemantics: null
   }
 
   componentDidMount() {
@@ -47,8 +46,8 @@ class SleecSlateEditor extends React.Component {
   }
 
   getChildrenRequirements = () => {
-
-    return this.semantics;
+    let state = this.handleSemanticsClick();
+    return state;
     //semantics after compile
   }
 
@@ -71,8 +70,11 @@ class SleecSlateEditor extends React.Component {
     antlr4.tree.ParseTreeWalker.DEFAULT.walk(sleecsemanticsAnalyzer, tree);
     // const reqtErrors = checkReqt(text)
     // if (reqtErrors.length > 0) return {parseErrors: reqtErrors}else return {
-      this.state.semantics = sleecsemanticsAnalyzer.semantics();
-      return this.state.semantics;
+      let sem = sleecsemanticsAnalyzer.semantics();
+      this.setState({
+       semantics : sem
+      });
+      return sem;
 
   }
 
@@ -83,6 +85,9 @@ class SleecSlateEditor extends React.Component {
     // Parse while typing to show errors in real-time
     //MM: change to SLEEC ones..
     // const result = FretSemantics.compilePartialText(fulltext);
+    if(this.props.onTextChange){
+      this.props.onTextChange(fulltext);
+    }
     this.setState({ 
       fulltext,
       // errors: result.parseErrors || null,
@@ -95,29 +100,32 @@ class SleecSlateEditor extends React.Component {
   handleSemanticsClick = () => {
     let fretish_break = this.sleecCompile(this.state.fulltext)
     let result=[];
+    let errors = [];
     fretish_break.forEach(element => {
-      result.push({...FretSemantics.compile(element),fulltext: element});
+      let compiled = FretSemantics.compile(element);
+      result.push({...(compiled.collectedSemantics),fulltext: element});
+      if (compiled.parseErrors){
+        errors.push(compiled.parseErrors);
+      }
     });
     // const result = FretSemantics.compile(this.state.fulltext);
-    console.log(result);
-
-    if (result.parseErrors) {
+    if (errors.length > 0) {
       this.setState({ 
-        errors: result.parseErrors,
+        errors: errors,
         semantics: null,
-        buttonClicked: true
+        fretishSemantics : null
       });
 //CLAUDE{
       // Notify parent about errors
       if (this.props.onSemanticsUpdate) {
-        this.props.onSemanticsUpdate(null, result.parseErrors);
+        this.props.onSemanticsUpdate(null, errors);
       }
     }
        else{
       this.setState({ 
-        semantics: result.collectedSemantics,
+        semantics: fretish_break,
         errors: null,
-        buttonClicked: true
+        fretishSemantics : result
       });
       
       // Notify parent about successful semantics extraction
@@ -126,6 +134,12 @@ class SleecSlateEditor extends React.Component {
       }
     }
 //}CLAUDE
+  return { 
+        fulltext: this.state.fulltext,
+        semantics: fretish_break,
+        errors: errors,
+        fretishSemantics : result
+      };
 
   }
 

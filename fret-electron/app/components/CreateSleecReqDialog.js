@@ -46,7 +46,12 @@ import withFields from "../utils/withFields";
 import { createOrUpdateRequirement } from '../reducers/allActionsSlice';
 import { connect } from "react-redux";
 
+const app =require('@electron/remote').app
+import { v1 as uuidv1 } from 'uuid';
 
+const {ipcRenderer} = require('electron');
+const fs = require('fs');
+const path = require('path');
 
 
 const formStyles = theme => ({
@@ -144,145 +149,222 @@ class CreateSleecReqDialog extends React.Component {
 
   
   handleUpdateSemantics = (semantics,error) => {
-    console.log('handleUpdateSemantics:\n\n', JSON.stringify(semantics));
     this.setState ({
         currentSemantics: semantics,
   });
   }
 
-  handleTextChange = (fulltext) => {
+  handleTextChange = (fulltext,semantics) => {
     this.setState({
-      fulltext: fulltext
+      fulltext: fulltext,
+      currentSemantics: semantics
     });
   }
 
-    handleCreate = async ()  => {}
-  //   if (! this.state.createSleecDialogOpen){return;}
-  //   this.setState({
-  //     createSleecDialogOpen: false
-  //   });
-  //   var self = this;
-  //   const { edittingRequirement, project, reqid, parent_reqid, rationale, comments} = this.state;
-  //   var requirementFields = this.stepper.getChildrenRequirements();
-  //   var { fulltext, semantics, input, template } = requirementFields;
+  handleCreate = async ()  => {
+    if (! this.state.createSleecDialogOpen){return;}
+    this.setState({
+      createSleecDialogOpen: false
+    });
+    var self = this;
+    const { edittingRequirement, project, reqid, parent_reqid, rationale, comments} = this.state;
+    var requirementFields = this.stepper.getChildrenRequirements();
+    var { fulltext, semantics, errors, fretishSemantics} = requirementFields;
 
-  //   var newReqId = this.state.reqid;
-  //   var dbid = edittingRequirement && Object.keys(edittingRequirement).length > 0 ? edittingRequirement._id : uuidv1()
-  //   var dbrev = edittingRequirement && Object.keys(edittingRequirement).length > 0 ? edittingRequirement._rev : undefined
-  //   var oldVariables = [];
-  //   var edittedFields = this.state;
-  //   var reqEditFields ={};
+    var newReqId = this.state.reqid;
+    var dbid = edittingRequirement && Object.keys(edittingRequirement).length > 0 ? edittingRequirement._id : uuidv1()
+    var dbrev = edittingRequirement && Object.keys(edittingRequirement).length > 0 ? edittingRequirement._rev : undefined
+    // var oldVariables = [];
+    var edittedFields = this.state;
+    var reqEditFields ={};
 
-  //   reqEditFields.reqid = edittedFields.reqid;
-  //   reqEditFields.parent_reqid = edittedFields.parent_reqid;
-  //   reqEditFields.project = edittedFields.project;
-  //   reqEditFields.rationale = edittedFields.rationale;
-  //   reqEditFields.comments = edittedFields.comments;
-  //   reqEditFields.status = edittedFields.status;
-  //   reqEditFields.fulltext = edittedFields.fulltext;
-  //   reqEditFields.semantics = edittedFields.semantics;
-  //   reqEditFields.template = edittedFields.template;
-  //   reqEditFields.input = edittedFields.input;
-  //   var args = [dbid, dbrev, reqEditFields, requirementFields,semantics,project]
-  //   // what if process.env.EXTERNAL_TOOL=='1'
-  //   // context isolation
+    reqEditFields.reqid = edittedFields.reqid;
+    reqEditFields.parent_reqid = edittedFields.parent_reqid;
+    reqEditFields.project = edittedFields.project;
+    reqEditFields.rationale = edittedFields.rationale;
+    reqEditFields.comments = edittedFields.comments;
+    reqEditFields.status = edittedFields.status;
+    reqEditFields.fulltext = edittedFields.fulltext;
+    reqEditFields.semantics = semantics;
+    // reqEditFields.template = edittedFields.template; 
+    // reqEditFields.input = edittedFields.input;
+    reqEditFields.sleec = 'parent';
 
-  //   if(process.env.EXTERNAL_TOOL=='1'){
+    var args = [dbid, dbrev, {...reqEditFields}, requirementFields, semantics,project];
+    var newreqs = [];
+    newreqs.push(args);
+    fretishSemantics.forEach((element,index) => {
+      const childReqEditFields = {
+        ...reqEditFields,
+        reqid : edittedFields.reqid+'_'+index,
+        parent_reqid : edittedFields.reqid,
+        fulltext : element.fulltext,
+        semantics : element,
+        sleec : 'child'
+      }
+      newreqs.push([dbid, dbrev, childReqEditFields, requirementFields, semantics, project]);
+        //{...FretSemantics.compile(element),fulltext: element});
+    });
+    // what if process.env.EXTERNAL_TOOL=='1'
+    // context isolation
+    if(process.env.EXTERNAL_TOOL=='1'){
 
-  //     var userDocumentsFolder = app.getPath('documents');
-  //     var ext_exp_json_file = '';
-  //     var ext_exp_json_file_exists =  false;
+    
+      //Mahrokh: Add to the database also for this branch
+      var userDocumentsFolder = app.getPath('documents');
+      var ext_exp_json_file = '';
+      var ext_exp_json_file_exists =  false;
 
-  //     if (typeof process.env.EXTERNAL_EXP_JSON === "undefined"){
-  //       ext_exp_json_file = path.join(userDocumentsFolder,'requirement.json');
-  //     } else {
-  //       ext_exp_json_file = process.env.EXTERNAL_EXP_JSON+'.json';
-  //     }
+      if (typeof process.env.EXTERNAL_EXP_JSON === "undefined"){
+        ext_exp_json_file = path.join(userDocumentsFolder,'requirement.json');
+      } else {
+        ext_exp_json_file = process.env.EXTERNAL_EXP_JSON+'.json';
+      }
 
-  //     // TBD replace fs.existSync with web based method
-  //     if (fs.existsSync(ext_exp_json_file)) {
-  //       // path exists, use same file name
-  //       ext_exp_json_file_exists =  true;
-  //     } else {
-  //       var dirName = path.dirname(ext_exp_json_file)
-  //       if (fs.existsSync(dirName)) {
-  //         // if directory exists then use env assignment
-  //       } else {
-  //         // directory doesn't exist, use default name
-  //         ext_exp_json_file = path.join(userDocumentsFolder, 'requirement.json')
-  //       }
-  //     }
+      // TBD replace fs.existSync with web based method
+      if (fs.existsSync(ext_exp_json_file)) {
+        // path exists, use same file name
+        ext_exp_json_file_exists =  true;
+      } else {
+        var dirName = path.dirname(ext_exp_json_file)
+        if (fs.existsSync(dirName)) {
+          // if directory exists then use env assignment
+        } else {
+          // directory doesn't exist, use default name
+          ext_exp_json_file = path.join(userDocumentsFolder, 'requirement.json')
+        }
+      }
 
-  //     // check again since ext_exp_json_file may be redefined
-  //     if (fs.existsSync(ext_exp_json_file)) {
-  //       // path exists, use same file name
-  //       ext_exp_json_file_exists =  true;
-  //       console.log('ext_exp_json_file_exists: ', ext_exp_json_file_exists)
-  //     }
+      // check again since ext_exp_json_file may be redefined
+      if (fs.existsSync(ext_exp_json_file)) {
+        // path exists, use same file name
+        ext_exp_json_file_exists =  true;
+        console.log('ext_exp_json_file_exists: ', ext_exp_json_file_exists)
+      }
 
-  //     if(ext_exp_json_file_exists){
-  //       // pop up warning
-  //       console.log('Overwriting existing external export file: ', ext_exp_json_file);
-  //     }
+      if(ext_exp_json_file_exists){
+        // pop up warning
+        console.log('Overwriting existing external export file: ', ext_exp_json_file);
+      }
 
-  //     var filepath = ext_exp_json_file;
+      var filepath = ext_exp_json_file;
 
-  //     let doc = ({"requirement": {"reqid" :this.state.reqid,
-  //                 "parent_reqid": this.state.parent_reqid,
-  //                 "project": this.state.project,
-  //                 "rationale": this.state.rationale,
-  //                 "comments": this.state.comments,
-  //                 "status": this.state.status,
-  //                 "fulltext": fulltext,
-  //                 "template": template,
-  //                 "semantics": semantics,
-  //                 "input": input}});
+      let doc = ({"requirement": {"reqid" :this.state.reqid,
+                  "parent_reqid": this.state.parent_reqid,
+                  "project": this.state.project,
+                  "rationale": this.state.rationale,
+                  "comments": this.state.comments,
+                  "status": this.state.status,
+                  "fulltext": fulltext,
+                  "template": template,
+                  "semantics": semantics,
+                  "input": input}});
 
-  //     fs.writeFile(filepath, JSON.stringify(doc, null, 4), (err) => {
-  //         if(err) {
-  //           return console.log(err);
-  //         }
-  //         ipcRenderer.send('closeFRET');
-  //     })
-  //   } else{
+      fs.writeFile(filepath, JSON.stringify(doc, null, 4), (err) => {
+          if(err) {
+            return console.log(err);
+          }
+          ipcRenderer.send('closeFRET');
+      })
+    } else{
+      var success = false;
+
+      newreqs.forEach(elem => {
+      //////// ***
+      // console.log('CreateRequirementDialog ipcRenderer createOrUpdateRequirement', args);
+      ipcRenderer.invoke('createOrUpdateRequirement',elem).then((result) => {
+        // console.log('payload2 CreateRequirementDialog createOrUpdateRequirement in : ',result)
+        // console.log('result.reqCreated CreateRequirementDialog createOrUpdateRequirement in : ',result.reqCreated)
+        // console.log('result.requirements CreateRequirementDialog createOrUpdateRequirement in : ',result.requirements)
+        success = success || result.reqCreated;
+        this.props.createOrUpdateRequirement({ type: 'actions/createOrUpdateRequirement',
+                                                requirements: result.requirements,
+                                                // analysis
+                                                components : result.components,
+                                                completedComponents : result.completedComponents,
+                                                cocospecData : result.cocospecData,
+                                                cocospecModes : result.cocospecModes,
+                                                smvCompletedComponents: result.smvCompletedComponents,
+                                                booleanOnlyComponents: result.booleanOnlyComponents,
+                                                // variables
+                                                variable_data : result.variable_data,
+                                                modelComponent : result.modelComponent,
+                                                modelVariables : result.modelVariables,
+                                                selectedVariable : result.selectedVariable,
+                                                importedComponents : result.importedComponents,                                                
+                                                })
+
+      }).catch((err) => {
+        console.log(err);
+      })
+      });
+
+      if (success) {
+          self.state.dialogCloseListener(true, newReqId);
+      } else {
+          self.state.dialogCloseListener(false);
+      }
+
+      this.setState({ projectName: '' });
+  //////// ***
+    }
+  };
 
 
-  //     //////// ***
-  //     // console.log('CreateRequirementDialog ipcRenderer createOrUpdateRequirement', args);
-  //     ipcRenderer.invoke('createOrUpdateRequirement',args).then((result) => {
-  //       // console.log('payload2 CreateRequirementDialog createOrUpdateRequirement in : ',result)
-  //       // console.log('result.reqCreated CreateRequirementDialog createOrUpdateRequirement in : ',result.reqCreated)
-  //       // console.log('result.requirements CreateRequirementDialog createOrUpdateRequirement in : ',result.requirements)
-  //       if (result.reqCreated) {
-  //         self.state.dialogCloseListener(true, newReqId);
-  //       } else {
-  //         self.state.dialogCloseListener(false);
-  //       }
-  //       this.props.createOrUpdateRequirement({ type: 'actions/createOrUpdateRequirement',
-  //                                               requirements: result.requirements,
-  //                                               // analysis
-  //                                               components : result.components,
-  //                                               completedComponents : result.completedComponents,
-  //                                               cocospecData : result.cocospecData,
-  //                                               cocospecModes : result.cocospecModes,
-  //                                               smvCompletedComponents: result.smvCompletedComponents,
-  //                                               booleanOnlyComponents: result.booleanOnlyComponents,
-  //                                               // variables
-  //                                               variable_data : result.variable_data,
-  //                                               modelComponent : result.modelComponent,
-  //                                               modelVariables : result.modelVariables,
-  //                                               selectedVariable : result.selectedVariable,
-  //                                               importedComponents : result.importedComponents,                                                
-  //                                               })
-
-  //     }).catch((err) => {
-  //       console.log(err);
-  //     })
-
-  //     this.setState({ projectName: '' });
-  // //////// ***
-  //   }
-  // };
+  
+componentWillReceiveProps(props, nextState) {
+    this.setState({
+      createSleecDialogOpen : props.open,
+      dialogCloseListener : props.handleCreateDialogClose,
+      edittingRequirement: props.editRequirement,
+    });
+    if (props.open && !this.state.createSleecDialogOpen) {
+      if (props.addChildRequirementToParent){
+        const { parentReqId, parentProject } = props.addChildRequirementToParent
+        this.setState(
+            {
+              project: parentProject,
+              reqid: '',
+              parent_reqid: parentReqId,
+              rationale: '',
+              comments: '',
+              status: '',
+              focus: '',
+              selectedTemplate: -1,
+            }
+          );
+      } else if ((props.editRequirement)
+            && Object.keys((props.editRequirement)).length !== 0) {
+        const template = props.editRequirement.template;
+        const templateIds = templates.map(t => t._id);
+        const selectedTemplate = template && template.id ?
+                templateIds.indexOf(template.id) : -1;
+        this.setState(
+            {
+              project: props.editRequirement.project,
+              reqid: props.editRequirement.reqid,
+              parent_reqid: props.editRequirement.parent_reqid,
+              rationale: props.editRequirement.rationale,
+              comments: props.editRequirement.comments,
+              status: props.editRequirement.status || '',
+              focus: '',
+              selectedTemplate,
+            }
+          );
+      } else {
+        const { selectedProject } = props
+        const defaultProject = selectedProject === 'All Projects' ? 'Default' : selectedProject
+        this.setState({
+          project: defaultProject,
+          reqid: '',
+          rationale: '',
+          comments: '',
+          focus: '',
+          selectedTemplate: -1,
+        })
+      }
+    }
+  }
 
 
 
@@ -322,15 +404,16 @@ class CreateSleecReqDialog extends React.Component {
 
   render() {
     //temp variable settings:
-    const isRequirementUpdate = false;
+    // const isRequirementUpdate = false;
     const { edittingRequirement, selectedTemplate} = this.state;
-    const { classes, open, onClose } = this.props;
+    const { classes, open, onClose,   addChildRequirementToParent } = this.props;
+    const isRequirementUpdate = !addChildRequirementToParent && (edittingRequirement && Object.keys(edittingRequirement).length > 0);
     const actionLabel = isRequirementUpdate ? 'Update' : 'Create';
     const dialogTitle = actionLabel + 'SLEEC Requirement';
     const commitButtonText = actionLabel
     const fulltext = isRequirementUpdate ? edittingRequirement.fulltext : undefined
     const templateValues = isRequirementUpdate ? edittingRequirement.template : undefined
-    const sleecChildren = this.stepper ? this.stepper.getChildrenRequirements() : undefined;
+    // const sleecChildren = this.stepper ? this.stepper.getChildrenRequirements().semantics : undefined;
 
 
     const statusSelectStyle = {
@@ -501,6 +584,8 @@ class CreateSleecReqDialog extends React.Component {
 CreateSleecReqDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
+  addChildRequirementToParent: PropTypes.object,
+  
 };
 
 function mapStateToProps(state) {

@@ -333,7 +333,7 @@ class MainView extends React.Component {
 
 
   }
-// Mahrokh: I'm changing some FRET code. Is that fine?
+// Mahrokh: I'm changing some FRET code here.
   handleMenuClick = (event,menu) => {
     this.setState({ anchorEl: event.currentTarget, openMenu: menu});
   };
@@ -382,8 +382,12 @@ class MainView extends React.Component {
     this.setState({ anchorEl: null, openMenu : null });
   };
 
-  handleCreateSleecClose = () => {
-    this.setState({ createSleecDialogOpen: false });
+  handleCreateSleecClose = (newRequirementCreated, newReqId) => {
+    this.setState({ 
+      createSleecDialogOpen: false,
+      snackbarOpen: newRequirementCreated,
+      lastCreatedRequirementId: newReqId
+     });
   };
 
 handleCreateSleecOpen = () => {
@@ -830,7 +834,9 @@ handleAnotherAction = () => {
             />
           <CreateSleecReqDialog
             open={this.state.createSleecDialogOpen}
-            onClose={this.handleCreateSleecClose}
+            handleCreateDialogClose={this.handleCreateSleecClose}
+            editRequirement={this.state.externalRequirement}
+            editVariables={this.state.externalVariables}
             // handleCreateSleecDialogClose={this.handleCreateSleecDialogClose}
             // editRequirement={this.state.externalRequirement}
             // editVariables={this.state.externalVariables}

@@ -28,7 +28,6 @@ class SleecInstructions extends React.Component {
 
   render() {
     const { data, classes, editorText, errors, semantics } = this.props;
-    console.log('instructions: ', semantics);
     return (
       <div style={{ padding: '24px' }}>
         {Array.isArray(semantics) && semantics.length > 0 && (
