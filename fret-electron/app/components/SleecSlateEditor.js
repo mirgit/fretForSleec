@@ -46,8 +46,8 @@ class SleecSlateEditor extends React.Component {
   }
 
   getChildrenRequirements = () => {
-    let state = this.handleSemanticsClick();
-    return state;
+    // let state = this.handleSemanticsClick();
+    return this.state;
     //semantics after compile
   }
 
@@ -134,12 +134,12 @@ class SleecSlateEditor extends React.Component {
       }
     }
 //}CLAUDE
-  return { 
-        fulltext: this.state.fulltext,
-        semantics: fretish_break,
-        errors: errors,
-        fretishSemantics : result
-      };
+  // return { 
+  //       fulltext: this.state.fulltext,
+  //       semantics: fretish_break,
+  //       errors: errors,
+  //       fretishSemantics : result
+  //     };
 
   }
 

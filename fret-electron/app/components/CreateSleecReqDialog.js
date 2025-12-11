@@ -119,6 +119,11 @@ class CreateSleecReqDialog extends React.Component {
 
   handleClose = () => {
     this.setState({ createSleecDialogOpen: false });
+    this.state.dialogCloseListener(false);
+    // this.setAutoFillVariables([]);
+    if(process.env.EXTERNAL_TOOL=='1'){
+      ipcRenderer.send('closeFRET');
+    }
   };
 
   handleTextFieldChange =  name => event => {
@@ -161,6 +166,13 @@ class CreateSleecReqDialog extends React.Component {
     });
   }
 
+
+
+  // setAutoFillVariables = (autoFillVariables) => {
+  //   this.setState({autoFillVariables})
+  // }
+
+
   handleCreate = async ()  => {
     if (! this.state.createSleecDialogOpen){return;}
     this.setState({
@@ -168,6 +180,7 @@ class CreateSleecReqDialog extends React.Component {
     });
     var self = this;
     const { edittingRequirement, project, reqid, parent_reqid, rationale, comments} = this.state;
+    await this.stepper.handleSemanticsClick();
     var requirementFields = this.stepper.getChildrenRequirements();
     var { fulltext, semantics, errors, fretishSemantics} = requirementFields;
 
@@ -202,7 +215,7 @@ class CreateSleecReqDialog extends React.Component {
         semantics : element,
         sleec : 'child'
       }
-      newreqs.push([dbid, dbrev, childReqEditFields, requirementFields, semantics, project]);
+      newreqs.push([uuidv1(), dbrev, childReqEditFields, childReqEditFields, semantics, project]);
         //{...FretSemantics.compile(element),fulltext: element});
     });
     // what if process.env.EXTERNAL_TOOL=='1'
@@ -276,6 +289,7 @@ class CreateSleecReqDialog extends React.Component {
         // console.log('payload2 CreateRequirementDialog createOrUpdateRequirement in : ',result)
         // console.log('result.reqCreated CreateRequirementDialog createOrUpdateRequirement in : ',result.reqCreated)
         // console.log('result.requirements CreateRequirementDialog createOrUpdateRequirement in : ',result.requirements)
+        console.log('elem:',elem,'\n\nresult: ',result);
         success = success || result.reqCreated;
         this.props.createOrUpdateRequirement({ type: 'actions/createOrUpdateRequirement',
                                                 requirements: result.requirements,
@@ -406,7 +420,7 @@ componentWillReceiveProps(props, nextState) {
     //temp variable settings:
     // const isRequirementUpdate = false;
     const { edittingRequirement, selectedTemplate} = this.state;
-    const { classes, open, onClose,   addChildRequirementToParent } = this.props;
+    const { classes, addChildRequirementToParent } = this.props;
     const isRequirementUpdate = !addChildRequirementToParent && (edittingRequirement && Object.keys(edittingRequirement).length > 0);
     const actionLabel = isRequirementUpdate ? 'Update' : 'Create';
     const dialogTitle = actionLabel + 'SLEEC Requirement';
@@ -421,13 +435,15 @@ componentWillReceiveProps(props, nextState) {
       borderWidth: 1,
       borderRadius: 5,
     }
-    const colorStyle = isRequirementUpdate ? getRequirementStyle({semantics, fulltext},false) : 'req-grey';
+    //Mahrokh: fix status color for update:
+    const colorStyle = 'req-grey';
+    // const colorStyle = isRequirementUpdate ? getRequirementStyle({semantics, fulltext},false) : 'req-grey';
         
     return (
         <div className={classes.root}>
                 <Dialog
-                  open={open}
-                  onClose={onClose}
+                  open={this.state.createSleecDialogOpen}
+                  onClose={this.handleClose}
                   aria-labelledby="form-dialog-title"
                   fullWidth={true}
                   maxWidth='lg'
@@ -561,7 +577,7 @@ componentWillReceiveProps(props, nextState) {
                             }, selectedTemplate)}
                       </DialogContent>
                       <DialogActions>
-                        <Button id="qa_crtsleec_btn_cancel" onClick={onClose}>
+                        <Button id="qa_crtsleec_btn_cancel" onClick={this.handleClose}>
                           Cancel
                         </Button>
                         <Button id="qa_crtsleec_btn_create" onClick={this.handleCreate} color="secondary" variant='contained'>
@@ -583,9 +599,11 @@ componentWillReceiveProps(props, nextState) {
 
 CreateSleecReqDialog.propTypes = {
   open: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
   addChildRequirementToParent: PropTypes.object,
-  
+  handleCreateDialogClose: PropTypes.func.isRequired,
+  editRequirement: PropTypes.object,
+  classes: PropTypes.object.isRequired,
+
 };
 
 function mapStateToProps(state) {
