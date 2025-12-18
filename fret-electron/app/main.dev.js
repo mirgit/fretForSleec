@@ -276,6 +276,10 @@ ipcMain.handle('generateTests', async (evt, arg) => {
   return result
 })
 
+ipcMain.handle('getDoc',  async (evt, arg) => {
+  const result = await fretModel.getDoc(arg);
+  return result
+})
 /**
  * Add event listeners...
  */

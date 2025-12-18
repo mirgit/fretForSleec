@@ -42,7 +42,7 @@ const styles = theme => ({
   }
 });
 
-class DisplayRequirementDialog extends React.Component {
+class DisplaySleecReqDialog extends React.Component {
   state = {
     open: false,
     selectedRequirement: {}
@@ -196,7 +196,7 @@ class DisplayRequirementDialog extends React.Component {
   }
 }
 
-DisplayRequirementDialog.propTypes = {
+DisplaySleecReqDialog.propTypes = {
   selectedRequirement: PropTypes.object.isRequired,
   open: PropTypes.bool.isRequired,
   handleDialogClose: PropTypes.func.isRequired,
@@ -204,4 +204,4 @@ DisplayRequirementDialog.propTypes = {
   handleDeleteDialogOpen: PropTypes.func.isRequired,
 }
 
-export default withStyles(styles)(DisplayRequirementDialog);
+export default withStyles(styles)(DisplaySleecReqDialog);

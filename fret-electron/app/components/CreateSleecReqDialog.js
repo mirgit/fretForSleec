@@ -43,8 +43,9 @@ import {withReact} from "slate-react";
 import {createEditor, Node, Range, Text, Transforms} from "slate";
 import withFields from "../utils/withFields";
 
-import { createOrUpdateRequirement } from '../reducers/allActionsSlice';
+import { createOrUpdateRequirement,deleteRequirement } from '../reducers/allActionsSlice';
 import { connect } from "react-redux";
+
 
 const app =require('@electron/remote').app
 import { v1 as uuidv1 } from 'uuid';
@@ -180,6 +181,37 @@ class CreateSleecReqDialog extends React.Component {
     });
     var self = this;
     const { edittingRequirement, project, reqid, parent_reqid, rationale, comments} = this.state;
+    //remove children
+    if(edittingRequirement.sleecChildren !== undefined){
+      var argList=[];
+      for (const element of edittingRequirement.sleecChildren) {
+        const doc = await ipcRenderer.invoke('getDoc', element);
+        argList.push(doc);
+      }
+      ipcRenderer.invoke('deleteRequirement',argList).then((result) => {
+      this.props.deleteRequirement({ type: 'actions/deleteRequirement',
+                                      // projects
+                                      // requirements
+                                      requirements : result.requirements,
+                                      // analysis
+                                      components : result.components,
+                                      completedComponents : result.completedComponents,
+                                      cocospecData : result.cocospecData,
+                                      cocospecModes : result.cocospecModes,
+                                      smvCompletedComponents: result.smvCompletedComponents,
+                                      booleanOnlyComponents: result.booleanOnlyComponents,
+                                      // variables
+                                      variable_data : result.variable_data,
+                                      modelComponent : result.modelComponent,
+                                      modelVariables : result.modelVariables,
+                                      selectedVariable : result.selectedVariable,
+                                      importedComponents : result.importedComponents,
+                                    })
+    }).catch((err) => {
+      console.log(err);
+    })
+    }
+
     await this.stepper.handleSemanticsClick();
     var requirementFields = this.stepper.getChildrenRequirements();
     var { fulltext, semantics, errors, fretishSemantics} = requirementFields;
@@ -206,6 +238,7 @@ class CreateSleecReqDialog extends React.Component {
     var args = [dbid, dbrev, {...reqEditFields}, requirementFields, semantics,project];
     var newreqs = [];
     newreqs.push(args);
+    var childrenIds = [];
     fretishSemantics.forEach((element,index) => {
       const childReqEditFields = {
         ...reqEditFields,
@@ -215,9 +248,12 @@ class CreateSleecReqDialog extends React.Component {
         semantics : element,
         sleec : 'child'
       }
-      newreqs.push([uuidv1(), dbrev, childReqEditFields, childReqEditFields, semantics, project]);
+      dbid = uuidv1();
+      childrenIds.push(dbid);
+      newreqs.push([dbid, undefined, childReqEditFields, childReqEditFields, semantics, project]);
         //{...FretSemantics.compile(element),fulltext: element});
     });
+    newreqs[0][2].sleecChildren=childrenIds;
     // what if process.env.EXTERNAL_TOOL=='1'
     // context isolation
     if(process.env.EXTERNAL_TOOL=='1'){
@@ -289,7 +325,6 @@ class CreateSleecReqDialog extends React.Component {
         // console.log('payload2 CreateRequirementDialog createOrUpdateRequirement in : ',result)
         // console.log('result.reqCreated CreateRequirementDialog createOrUpdateRequirement in : ',result.reqCreated)
         // console.log('result.requirements CreateRequirementDialog createOrUpdateRequirement in : ',result.requirements)
-        console.log('elem:',elem,'\n\nresult: ',result);
         success = success || result.reqCreated;
         this.props.createOrUpdateRequirement({ type: 'actions/createOrUpdateRequirement',
                                                 requirements: result.requirements,
@@ -617,7 +652,8 @@ function mapStateToProps(state) {
   };
 }
 const mapDispatchToProps = {
-  createOrUpdateRequirement
+  createOrUpdateRequirement,
+  deleteRequirement
 };
 
 export default withStyles(formStyles)

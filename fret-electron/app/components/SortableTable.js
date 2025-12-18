@@ -44,6 +44,8 @@ import DisplayRequirementDialog from './DisplayRequirementDialog';
 import CreateRequirementDialog from './CreateRequirementDialog';
 import DeleteRequirementDialog from './DeleteRequirementDialog';
 import SearchSortableTableDialog from './SearchSortableTableDialog';
+import DisplaySleecReqDialog from './DisplaySleecReqDialog';
+import CreateSleecReqDialog from './CreateSleecReqDialog';
 
 // select and menu for status column
 import Select from '@material-ui/core/Select';
@@ -61,9 +63,9 @@ const {ipcRenderer} = require('electron');
 
 let counter = 0;
 // status is also saved in database
-function createData(dbkey, rev, reqid, summary, project, status, semantics, fulltext) {
+function createData(dbkey, rev, reqid, summary, project, status, semantics, fulltext, sleec) {
   counter += 1;
-  return { rowid: counter, dbkey, rev, reqid, summary, project, status: status || 'None', semantics, fulltext};
+  return { rowid: counter, dbkey, rev, reqid, summary, project, status: status || 'None', semantics, fulltext, sleec: sleec || 'Fretish'};
 }
 
 function desc(a, b, orderBy) {
@@ -100,6 +102,7 @@ function getSorting(order, orderBy) {
 const rows = [
   { id: 'status', numeric: false, disablePadding: false, label: 'Status' },
   { id: 'reqid', numeric: false, disablePadding: false, label: 'ID' },
+  { id: 'sleec', numeric: false, disablePadding: false, label: 'type'},
   { id: 'add', numeric: false, disablePadding: false, label: '' },
   { id: 'summary', numeric: false, disablePadding: false, label: 'Summary' },
   { id: 'project', numeric: false, disablePadding: false, label: 'Project' },
@@ -348,11 +351,13 @@ class SortableTable extends React.Component {
     page: 0,
     rowsPerPage: 10,
     displayRequirementOpen: false,
+    displaySleecReqOpen: false,
     selectedRequirement: {},
     selectionBulkChange: [],
     snackBarDisplayInfo: {},
     addChildRequirementMode: undefined,
     createDialogOpen: false,
+    createSleecDialogOpen: false,
     deleteDialogOpen: false,
     snackbarOpen: false,
     selectedProject: 'All Projects',
@@ -410,7 +415,7 @@ class SortableTable extends React.Component {
       const statusFilter = searchStatusLowerCase.length ? r.doc.status ? searchStatusLowerCase.includes(r.doc.status.toLowerCase()) : searchStatusLowerCase.includes('none'): true;
       return (filterOff || r.doc.project == selectedProject) && idFilter && summaryFilter && statusFilter && hasWordsFilter;
     }).map(r => {
-      return createData(r.doc._id, r.doc._rev, r.doc.reqid, r.doc.fulltext, r.doc.project, r.doc.status, r.doc.semantics, r.doc.fulltext);
+      return createData(r.doc._id, r.doc._rev, r.doc.reqid, r.doc.fulltext, r.doc.project, r.doc.status, r.doc.semantics, r.doc.fulltext, r.doc.sleec);
     });
     this.setState({
       data,
@@ -509,9 +514,32 @@ class SortableTable extends React.Component {
     }
   }
 
+handleSleecReqDialogOpen = (row) => event => {event.stopPropagation();
+    if (row.dbkey) {
+      // context isolation
+      //
+
+      var argList = [row];
+      // ipcRenderer call main with argLit and main returns result to update Redux store
+      ipcRenderer.invoke('retrieveRequirement',argList).then((result) => {
+        /*
+        this.props.retrieveRequirement({ type: 'actions/retrieveRequirement',
+                                        //selectedRequirement: result.selectedRequirement,
+                                        }) */
+        this.setState({
+          selectedRequirement: result.doc,
+          displaySleecReqOpen: true,})
+      }).catch((err) => {
+        console.log(err);
+      })
+
+    }
+  }
+
   handleRequirementDialogClose = () => {
     this.setState({
       displayRequirementOpen: false,
+      displaySleecReqOpen: false,
       addChildRequirement: false
     })
   }
@@ -519,6 +547,11 @@ class SortableTable extends React.Component {
   handleCreateDialogOpen = () => {
     this.setState({
       createDialogOpen: true
+    })
+  }
+  handleCreateSleecDialogOpen = () =>{
+    this.setState({
+      createSleecDialogOpen: true
     })
   }
 
@@ -567,6 +600,7 @@ class SortableTable extends React.Component {
   handleCreateDialogClose = (requirementUpdated, newReqId, actionLabel) => {
     this.setState({
       createDialogOpen: false,
+      createSleecDialogOpen: false,
       snackbarOpen: requirementUpdated,
       snackBarDisplayInfo: {
         modifiedReqId: newReqId,
@@ -877,18 +911,27 @@ class SortableTable extends React.Component {
                           </Select>
                         </TableCell>
                         <TableCell>
-                        <Button className={classes.lowerCaseButton} id={"qa_tbl_btn_not_bulk_id_"+label} color='secondary' onClick={this.handleRequirementDialogOpen(n)}>
+                          {n.sleec === "Fretish"? (
+                            <Button className={classes.lowerCaseButton} id={"qa_tbl_btn_not_bulk_id_"+label} color='secondary' onClick={this.handleRequirementDialogOpen(n)}>
+                              {label}
+                            </Button>):(
+                              <Button className={classes.lowerCaseButton} id={"qa_tbl_btn_not_bulk_id_"+label} color='secondary' onClick={this.handleSleecReqDialogOpen(n)}>
                               {label}
                             </Button>
+                            )}
+                          </TableCell>
+                          <TableCell id={"qa_tbl_tc_not_bulk_sleec_"+label}>
+                            {n.sleec?('SLEEC: '+n.sleec): 'FRETish'}
                           </TableCell>
                           <TableCell>
-                            <Tooltip title="Add Child Requirement">
-                            <IconButton id={"qa_tbl_ib_not_bulk_add_child_"+label}
-                                aria-label="Add Child Requirement"
-                                onClick={this.handleAddChildRequirement(n.reqid, n.project)}>
-                                <AddIcon />
-                              </IconButton>
-                            </Tooltip>
+                            {n.sleec === "Fretish" && (
+                              <Tooltip title="Add Child Requirement">
+                                <IconButton id={"qa_tbl_ib_not_bulk_add_child_"+label}
+                                  aria-label="Add Child Requirement"
+                                  onClick={this.handleAddChildRequirement(n.reqid, n.project)}>
+                                  <AddIcon />
+                                </IconButton>
+                              </Tooltip>)}
                           </TableCell>
                         <TableCell id={"qa_tbl_tc_not_bulk_summary_"+label} >{n.summary}</TableCell>
                         <TableCell id={"qa_tbl_tc_not_bulk_project_"+label} >{projectLabel}</TableCell>
@@ -927,8 +970,23 @@ class SortableTable extends React.Component {
         handleCreateDialogOpen={this.handleCreateDialogOpen}
         handleDeleteDialogClose={this.handleDeleteDialogClose}
         handleDeleteDialogOpen={this.handleDeleteDialogOpen}/>
+        <DisplaySleecReqDialog
+        selectedRequirement={this.state.selectedRequirement}
+        open={this.state.displaySleecReqOpen}
+        handleDialogClose={this.handleRequirementDialogClose}
+        handleCreateDialogOpen={this.handleCreateSleecDialogOpen}
+        handleDeleteDialogClose={this.handleDeleteDialogClose}
+        handleDeleteDialogOpen={this.handleDeleteDialogOpen}/>
       <CreateRequirementDialog
         open={this.state.createDialogOpen}
+        handleCreateDialogClose={this.handleCreateDialogClose}
+        selectedProject={this.state.selectedProject}
+        editRequirement={this.state.selectedRequirement}
+        addChildRequirementToParent={this.state.addChildRequirementMode}
+        listOfProjects={this.props.listOfProjects}
+        requirements = {this.props.requirements} />
+        <CreateSleecReqDialog
+        open={this.state.createSleecDialogOpen}
         handleCreateDialogClose={this.handleCreateDialogClose}
         selectedProject={this.state.selectedProject}
         editRequirement={this.state.selectedRequirement}

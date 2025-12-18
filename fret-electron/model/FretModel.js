@@ -1393,4 +1393,9 @@ export default class FretModel {
 
   }
 
+  getDoc = async(dbid) =>{
+    return fretDbGetters.getDoc(dbid);
+
+  }
+
 }

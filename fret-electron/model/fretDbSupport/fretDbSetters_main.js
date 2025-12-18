@@ -43,6 +43,7 @@ async function addRequirement (dbid, dbrev, edittedFields, generatedFields) {
       fulltext : generatedFields.fulltext,
       semantics : generatedFields.semantics,
       sleec : edittedFields.sleec,
+      sleecChildren : edittedFields.sleecChildren,
       template : generatedFields.template,
       input : generatedFields.input
     }, (err, responses) => {
