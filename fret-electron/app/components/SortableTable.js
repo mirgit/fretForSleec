@@ -864,9 +864,31 @@ handleSleecReqDialogOpen = (row) => event => {event.stopPropagation();
                           </Select>
                         </TableCell>
                         <TableCell>
-                        <Button className={classes.lowerCaseButton} id={"qa_tbl_btn_bulk_id_"+label}  color='secondary' onClick={this.handleRequirementDialogOpen(n)}>
-                            {label}
-                          </Button>
+                          {n.sleec=="child" ? (
+                            <Button 
+                              className={classes.lowerCaseButton} 
+                              color='secondary'
+                              id={"qa_tbl_btn_bulk_child_id"+label}
+                              onClick={this.handleSleecReqDialogOpen(n)}>
+                              {label}
+                            </Button>
+                          ) : n.sleec === "Fretish" ? (
+                            <Button 
+                              className={classes.lowerCaseButton} 
+                              id={"qa_tbl_btn_bulk_fretish_id_"+label} 
+                              color='secondary' 
+                              onClick={this.handleRequirementDialogOpen(n)}>
+                              {label}
+                            </Button>
+                          ) : (
+                            <Button 
+                              className={classes.lowerCaseButton} 
+                              id={"qa_tbl_btn_bulk_parent_id_"+label} 
+                              color='secondary' 
+                              onClick={this.handleSleecReqDialogOpen(n)}>
+                              {label}
+                            </Button>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Tooltip title="Add Child Requirement">
@@ -911,15 +933,32 @@ handleSleecReqDialogOpen = (row) => event => {event.stopPropagation();
                           </Select>
                         </TableCell>
                         <TableCell>
-                          {n.sleec === "Fretish"? (
-                            <Button className={classes.lowerCaseButton} id={"qa_tbl_btn_not_bulk_id_"+label} color='secondary' onClick={this.handleRequirementDialogOpen(n)}>
-                              {label}
-                            </Button>):(
-                              <Button className={classes.lowerCaseButton} id={"qa_tbl_btn_not_bulk_id_"+label} color='secondary' onClick={this.handleSleecReqDialogOpen(n)}>
+                          {n.sleec=="child" ? (
+                            <Button 
+                              className={classes.lowerCaseButton} 
+                              color='secondary'
+                              id={"qa_tbl_btn_bulk_child_id"+label}
+                              onClick={this.handleSleecReqDialogOpen(n)}>
                               {label}
                             </Button>
-                            )}
-                          </TableCell>
+                          ) : n.sleec === "Fretish" ? (
+                            <Button 
+                              className={classes.lowerCaseButton} 
+                              id={"qa_tbl_btn_bulk_fretish_id"+label} 
+                              color='secondary' 
+                              onClick={this.handleRequirementDialogOpen(n)}>
+                              {label}
+                            </Button>
+                          ) : (
+                            <Button 
+                              className={classes.lowerCaseButton} 
+                              id={"qa_tbl_btn_bulk_parent_id"+label} 
+                              color='secondary' 
+                              onClick={this.handleSleecReqDialogOpen(n)}>
+                              {label}
+                            </Button>
+                          )}
+                        </TableCell>
                           <TableCell id={"qa_tbl_tc_not_bulk_sleec_"+label}>
                             {n.sleec?('SLEEC: '+n.sleec): 'FRETish'}
                           </TableCell>
